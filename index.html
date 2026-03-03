@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Colorama — Clasificador Gate 0</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#1e2240;font-family:Georgia,'Times New Roman',serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .wrap{width:100%;max-width:520px;}
+  .header{margin-bottom:20px;}
+  .tag{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .tag-left{display:flex;align-items:center;gap:8px;}
+  .dot{width:24px;height:24px;background:#e85d04;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:bold;font-family:monospace;}
+  .tag-txt{color:#c0c8dc;font-size:10px;letter-spacing:2px;font-family:monospace;text-transform:uppercase;}
+  h1{color:#ffffff;font-size:24px;font-weight:normal;line-height:1.3;}
+  h1 span{color:#e85d04;font-style:italic;}
+  .card{background:#2a2f50;border:1px solid #4a5070;padding:28px;}
+  .prog{margin-bottom:24px;}
+  .prog-top{display:flex;justify-content:space-between;margin-bottom:6px;}
+  .prog-lbl{color:#a0aac0;font-size:10px;font-family:monospace;letter-spacing:1px;}
+  .track{height:3px;background:#4a5070;border-radius:2px;}
+  .fill{height:100%;background:#e85d04;transition:width 0.4s;border-radius:2px;}
+  .question{color:#ffffff;font-size:17px;margin-bottom:20px;line-height:1.5;font-weight:normal;}
+  .text-inp{background:#1e2240;border:1px solid #4a5070;color:#fff;padding:13px 15px;font-size:14px;font-family:Georgia,serif;width:100%;outline:none;margin-bottom:12px;}
+  .text-inp::placeholder{color:#6a7090;}
+  .text-inp:focus{border-color:#e85d04;}
+  .opts{display:flex;flex-direction:column;gap:8px;}
+  .opt-btn{background:#1e2240;border:1px solid #4a5070;color:#d0d8ec;padding:13px 15px;text-align:left;cursor:pointer;font-size:14px;font-family:Georgia,serif;display:flex;align-items:center;gap:12px;transition:all 0.15s;width:100%;}
+  .opt-btn:hover{border-color:#e85d04;color:#fff;background:rgba(232,93,4,0.10);}
+  .opt-btn.sel{background:rgba(232,93,4,0.15);border-color:#e85d04;color:#fff;}
+  .sq{width:14px;height:14px;border:1px solid #6a7090;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;color:white;}
+  .sq.sel{border-color:#e85d04;background:#e85d04;}
+  .dot-sq{width:6px;height:6px;background:#e85d04;flex-shrink:0;}
+  .multi-hint{color:#a0aac0;font-size:10px;margin-bottom:12px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;}
+  .primary-btn{background:#e85d04;border:none;color:#fff;padding:14px;cursor:pointer;font-size:11px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;width:100%;margin-top:14px;}
+  .badge{display:inline-flex;align-items:center;gap:12px;padding:10px 16px;margin-bottom:6px;}
+  .badge-icon{width:22px;height:22px;color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;flex-shrink:0;}
+  .badge-txt{font-weight:bold;font-size:16px;font-family:monospace;}
+  .res-rows{display:flex;flex-direction:column;gap:11px;margin:18px 0;border-top:1px solid #4a5070;padding-top:18px;}
+  .res-row{display:flex;gap:14px;}
+  .res-key{color:#a0aac0;font-size:10px;font-family:monospace;min-width:62px;padding-top:2px;letter-spacing:1px;text-transform:uppercase;flex-shrink:0;}
+  .res-val{color:#d0d8ec;font-size:13px;line-height:1.5;}
+  .res-val.bold{color:#ffffff;font-weight:bold;}
+  .inputs-box{background:#1e2240;border:1px solid #3a4060;padding:14px;margin-bottom:18px;}
+  .inputs-lbl{color:#7a84a4;font-size:9px;font-family:monospace;margin-bottom:10px;letter-spacing:1px;text-transform:uppercase;}
+  .inp-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #3a4060;font-size:11px;font-family:monospace;gap:12px;}
+  .inp-row:last-child{border-bottom:none;}
+  .inp-k{color:#a0aac0;text-transform:uppercase;flex-shrink:0;}
+  .inp-v{color:#d0d8ec;text-align:right;}
+  .msg{padding:10px 14px;margin-bottom:14px;font-size:11px;font-family:monospace;}
+  .msg.ok{background:#1a3a2a;border:1px solid #2a6a4a;color:#4ade80;}
+  .msg.err{background:#3a1a1a;border:1px solid #6a2a2a;color:#f87171;}
+  .btns{display:flex;gap:10px;}
+  .save-btn{flex:2;background:#e85d04;border:none;color:#fff;padding:13px;cursor:pointer;font-size:11px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;}
+  .save-btn:disabled{background:#4a5070;color:#8090b0;cursor:default;}
+  .new-btn{flex:1;background:transparent;border:1px solid #4a5070;color:#c0c8dc;padding:13px;cursor:pointer;font-size:11px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;}
+  .new-btn:hover{border-color:#8090b0;color:#fff;}
+  .loading{color:#a0aac0;font-family:monospace;font-size:12px;text-align:center;padding:40px;}
+  .footer{margin-top:12px;display:flex;justify-content:space-between;}
+  .footer span{color:#4a5070;font-size:9px;font-family:monospace;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="tag">
+      <div class="tag-left">
+        <div class="dot">C</div>
+        <span class="tag-txt">Colorama · Gate 0 · Clasificador</span>
+      </div>
+    </div>
+    <h1>Evaluación de <span>Complejidad</span></h1>
+  </div>
+  <div class="card" id="card"><div class="loading">Cargando...</div></div>
+  <div class="footer">
+    <span>GATE 0 · v2.0 · apptIVEtC5ZdCrZUz</span>
+    <span>COLORAMA · 2026</span>
+  </div>
+</div>
+<script>
+const AT_BASE="apptIVEtC5ZdCrZUz",AT_TABLE="tblHVzvvynN0QN3mK";
+const AT_FIELDS={cliente:"fldDsqYSQ964yjNgU",detalle:"fldq1dbZi9hlwg9GG",status:"fldHAwZC7ATlUjOXQ"};
+const STEPS=[
+  {id:"cliente",tipo:"text",pregunta:"Nombre del cliente / proyecto",placeholder:"Ej: Viña del Valle — Carmenere 2026"},
+  {id:"tecnologia",tipo:"single",pregunta:"¿Cuál es la tecnología de impresión?",opts:["Flexografía","Digital","Offset"]},
+  {id:"pantones",tipo:"single",pregunta:"¿La etiqueta incluye colores Pantone?",opts:["Ninguno — solo CMYK","1-2 Pantones","3+ Pantones"]},
+  {id:"folia",tipo:"single",pregunta:"¿Se aplica algún tipo de folia?",opts:["Ninguna","Folia simple (líneas o marco)","Folia compleja o múltiples"]},
+  {id:"terminaciones",tipo:"multi",pregunta:"¿Qué terminaciones adicionales incluye?",opts:["Barniz pleno","Barniz reservado","Troquelado estándar","Troquelado especial / ventanas","Relieve o bajorrelieve","Serigrafía","Material compuesto","Ninguna"]},
+];
+const RES={
+  FACIL:{label:"FÁCIL",color:"#16a34a",light:"#1a3a2a",border:"#2a6a4a",icon:"✓",accion:"Pasa directo a Gate 1 — Pre-Diseño",sla:"Lead time estándar"},
+  MEDIA:{label:"MEDIA",color:"#d97706",light:"#3a2a0a",border:"#6a4a0a",icon:"◐",accion:"Gate 1 con flag técnico — revisar Pantones / Folia",sla:"Lead time estándar + 2 días"},
+  ESCALAR:{label:"ESCALAR",color:"#ef4444",light:"#3a1a1a",border:"#6a2a2a",icon:"!",accion:"Escalar a Jefe Técnico — no confirmar fecha al cliente",sla:"Pendiente evaluación técnica"},
+};
+let step=0,resp={},multi=[],token="",resultado=null;
+
+// Cargar token desde servidor al iniciar
+async function init(){
+  try{
+    const r=await fetch('/api/token');
+    const d=await r.json();
+    token=d.token||"";
+  }catch(e){token="";}
+  render();
+}
+
+function clasificar(){
+  const p=resp.pantones||"",f=resp.folia||"",t=resp.terminaciones||[];
+  const c=t.some(x=>["Troquelado especial / ventanas","Relieve o bajorrelieve","Serigrafía","Material compuesto"].includes(x));
+  if(f.includes("compleja")||p.includes("3+")||c)return"ESCALAR";
+  if(p.includes("Ninguno")&&f==="Ninguna"&&!c)return"FACIL";
+  return"MEDIA";
+}
+function render(){
+  const card=document.getElementById("card");
+  if(resultado){renderResult(card);return;}
+  const s=STEPS[step],pct=(step/STEPS.length)*100;
+  let h=`<div class="prog"><div class="prog-top"><span class="prog-lbl">PASO ${step+1} / ${STEPS.length}</span><span class="prog-lbl">${Math.round(pct)}%</span></div><div class="track"><div class="fill" style="width:${pct}%"></div></div></div><p class="question">${s.pregunta}</p>`;
+  if(s.tipo==="text"){
+    h+=`<input class="text-inp" id="ti" placeholder="${s.placeholder}" onkeydown="if(event.key==='Enter')subText()"/><button class="primary-btn" onclick="subText()">Continuar →</button>`;
+  }else if(s.tipo==="single"){
+    h+=`<div class="opts">`+s.opts.map(o=>`<button class="opt-btn" onclick="selS('${o.replace(/'/g,"\\'")}')"><span class="dot-sq"></span>${o}</button>`).join("")+`</div>`;
+  }else{
+    h+=`<p class="multi-hint">Selección múltiple — marca todas las que aplican</p><div class="opts">`+
+    s.opts.map(o=>{const id=o.replace(/[^a-zA-Z0-9]/g,'_');return`<button class="opt-btn" id="b_${id}" onclick="togM('${o.replace(/'/g,"\\'")}')"><span class="sq" id="s_${id}"></span>${o}</button>`;}).join("")+
+    `</div><button class="primary-btn" onclick="confM()">Clasificar →</button>`;
+  }
+  card.innerHTML=h;
+  if(s.tipo==="text")document.getElementById("ti").focus();
+}
+function subText(){const v=document.getElementById("ti").value.trim();if(!v)return;resp[STEPS[step].id]=v;next();}
+function selS(v){resp[STEPS[step].id]=v;next();}
+function togM(v){
+  if(v==="Ninguna"){multi=["Ninguna"];}
+  else{multi=multi.filter(x=>x!=="Ninguna");multi.includes(v)?multi=multi.filter(x=>x!==v):multi.push(v);}
+  STEPS[step].opts.forEach(o=>{
+    const id=o.replace(/[^a-zA-Z0-9]/g,'_');
+    const sq=document.getElementById("s_"+id),bn=document.getElementById("b_"+id);
+    if(sq)sq.className=multi.includes(o)?"sq sel":"sq";
+    if(bn)bn.className=multi.includes(o)?"opt-btn sel":"opt-btn";
+  });
+}
+function confM(){resp[STEPS[step].id]=multi.length?multi:["Ninguna"];resultado=clasificar();render();}
+function next(){if(step<STEPS.length-1){setTimeout(()=>{step++;render();},150);}else{resultado=clasificar();render();}}
+function renderResult(card){
+  const r=RES[resultado];
+  const inp=Object.entries(resp).filter(([k])=>k!=="cliente").map(([k,v])=>`<div class="inp-row"><span class="inp-k">${k}</span><span class="inp-v">${Array.isArray(v)?v.join(" / "):v}</span></div>`).join("");
+  card.innerHTML=`
+    <div class="badge" style="background:${r.light};border:1px solid ${r.border}">
+      <span class="badge-icon" style="background:${r.color}">${r.icon}</span>
+      <span class="badge-txt" style="color:${r.color}">COMPLEJIDAD: ${r.label}</span>
+    </div>
+    <div class="res-rows">
+      <div class="res-row"><span class="res-key">Cliente</span><span class="res-val">${resp.cliente||"—"}</span></div>
+      <div class="res-row"><span class="res-key">Acción</span><span class="res-val bold">${r.accion}</span></div>
+      <div class="res-row"><span class="res-key">SLA</span><span class="res-val">${r.sla}</span></div>
+    </div>
+    <div class="inputs-box"><p class="inputs-lbl">Inputs registrados</p>${inp}</div>
+    <div id="msgBox"></div>
+    <div class="btns">
+      <button class="save-btn" id="saveBtn" onclick="guardar()">↑ Guardar en Airtable</button>
+      <button class="new-btn" onclick="reiniciar()">← Nueva evaluación</button>
+    </div>`;
+}
+async function guardar(){
+  const btn=document.getElementById("saveBtn");btn.disabled=true;btn.textContent="Guardando...";
+  const r=RES[resultado];
+  const det=[`Tecnología: ${resp.tecnologia}`,`Pantones: ${resp.pantones}`,`Folia: ${resp.folia}`,`Terminaciones: ${Array.isArray(resp.terminaciones)?resp.terminaciones.join(", "):resp.terminaciones}`,`Acción: ${r.accion}`,`SLA: ${r.sla}`,`Fecha: ${new Date().toISOString().split("T")[0]}`].join(" | ");
+  try{
+    const res=await fetch(`https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}`,{method:"POST",headers:{"Authorization":`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({records:[{fields:{[AT_FIELDS.cliente]:resp.cliente||"Sin nombre",[AT_FIELDS.detalle]:det,[AT_FIELDS.status]:r.label}}]})});
+    if(!res.ok)throw new Error((await res.json())?.error?.message||"Error de conexión");
+    document.getElementById("msgBox").innerHTML=`<div class="msg ok">✓ Registro guardado correctamente en Airtable</div>`;
+    btn.style.display="none";
+  }catch(e){
+    document.getElementById("msgBox").innerHTML=`<div class="msg err">✗ ${e.message}</div>`;
+    btn.disabled=false;btn.textContent="↑ Guardar en Airtable";
+  }
+}
+function reiniciar(){step=0;resp={};multi=[];resultado=null;render();}
+init();
+</script>
+</body>
+</html>
