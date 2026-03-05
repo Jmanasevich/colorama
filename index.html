@@ -4,10 +4,11 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Colorama — Clasificador Gate 0</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:#1e2240;font-family:Georgia,'Times New Roman',serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-  .wrap{width:100%;max-width:540px;}
+  .wrap{width:100%;max-width:580px;}
   .header{margin-bottom:20px;}
   .tag-left{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
   .dot{width:24px;height:24px;background:#e85d04;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:bold;font-family:monospace;}
@@ -22,7 +23,10 @@
   .text-inp{background:#1e2240;border:1px solid #4a5070;color:#fff;padding:13px 15px;font-size:14px;font-family:Georgia,serif;width:100%;outline:none;}
   .text-inp::placeholder{color:#6a7090;}
   .text-inp:focus{border-color:#e85d04;}
-  .primary-btn{background:#e85d04;border:none;color:#fff;padding:14px;cursor:pointer;font-size:11px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;width:100%;margin-top:6px;}
+  select.text-inp{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236a7090' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;cursor:pointer;}
+  select.text-inp option{background:#1e2240;color:#fff;}
+  .primary-btn{background:#e85d04;border:none;color:#fff;padding:14px;cursor:pointer;font-size:11px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;width:100%;margin-top:6px;transition:background 0.2s;}
+  .primary-btn:hover{background:#d04f00;}
   .primary-btn:disabled{background:#4a5070;color:#8090b0;cursor:default;}
   .msg{padding:10px 14px;margin-bottom:14px;font-size:11px;font-family:monospace;}
   .msg.err{background:#3a1a1a;border:1px solid #6a2a2a;color:#f87171;}
@@ -43,17 +47,21 @@
   .opt-btn{background:#1e2240;border:1px solid #4a5070;color:#d0d8ec;padding:12px 15px;text-align:left;cursor:pointer;font-size:13px;font-family:Georgia,serif;display:flex;align-items:center;gap:12px;transition:all 0.15s;width:100%;}
   .opt-btn:hover{border-color:#e85d04;color:#fff;background:rgba(232,93,4,0.10);}
   .opt-btn.sel{background:rgba(232,93,4,0.15);border-color:#e85d04;color:#fff;}
-  .sq{width:14px;height:14px;border:1px solid #6a7090;flex-shrink:0;}
-  .sq.sel{border-color:#e85d04;background:#e85d04;}
+  .sq{width:14px;height:14px;border:1px solid #6a7090;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;}
+  .sq.sel{border-color:#e85d04;background:#e85d04;color:#fff;}
   .dot-sq{width:6px;height:6px;background:#e85d04;flex-shrink:0;}
   .multi-hint{color:#a0aac0;font-size:10px;margin-bottom:10px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;}
   .badge{display:inline-flex;align-items:center;gap:12px;padding:10px 16px;margin-bottom:6px;width:100%;}
-  .badge-icon{width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;flex-shrink:0;color:#fff;}
+  .badge-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;flex-shrink:0;color:#fff;border-radius:2px;}
   .badge-txt{font-weight:bold;font-size:15px;font-family:monospace;}
   .badge-sub{font-size:10px;font-family:monospace;opacity:0.8;margin-top:2px;}
+  .score-bar{display:flex;gap:2px;margin:12px 0 4px;height:6px;}
+  .score-seg{flex:1;border-radius:1px;opacity:0.3;}
+  .score-seg.active{opacity:1;}
+  .score-label{color:#8090b0;font-size:9px;font-family:monospace;margin-bottom:16px;letter-spacing:0.5px;}
   .res-rows{display:flex;flex-direction:column;gap:11px;margin:18px 0;border-top:1px solid #4a5070;padding-top:18px;}
   .res-row{display:flex;gap:14px;}
-  .res-key{color:#a0aac0;font-size:10px;font-family:monospace;min-width:68px;padding-top:2px;letter-spacing:1px;text-transform:uppercase;flex-shrink:0;}
+  .res-key{color:#a0aac0;font-size:10px;font-family:monospace;min-width:80px;padding-top:2px;letter-spacing:1px;text-transform:uppercase;flex-shrink:0;}
   .res-val{color:#d0d8ec;font-size:13px;line-height:1.5;}
   .res-val.bold{color:#ffffff;font-weight:bold;}
   .inputs-box{background:#1e2240;border:1px solid #3a4060;padding:14px;margin-bottom:18px;}
@@ -61,12 +69,23 @@
   .inp-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #3a4060;font-size:11px;font-family:monospace;gap:12px;}
   .inp-row:last-child{border-bottom:none;}
   .inp-k{color:#a0aac0;text-transform:uppercase;flex-shrink:0;}
-  .inp-v{color:#d0d8ec;text-align:right;}
-  .btns{display:flex;gap:10px;}
-  .save-btn{flex:2;background:#e85d04;border:none;color:#fff;padding:13px;cursor:pointer;font-size:11px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;}
+  .inp-v{color:#d0d8ec;text-align:right;word-break:break-word;}
+  .factors-box{background:#1e2240;border:1px solid #3a4060;padding:14px;margin-bottom:18px;}
+  .factors-lbl{color:#7a84a4;font-size:9px;font-family:monospace;margin-bottom:10px;letter-spacing:1px;text-transform:uppercase;}
+  .factor-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px;font-family:monospace;}
+  .factor-name{color:#a0aac0;}
+  .factor-pts{color:#e85d04;font-weight:bold;min-width:40px;text-align:right;}
+  .btns{display:flex;gap:10px;flex-wrap:wrap;}
+  .save-btn{flex:2;background:#e85d04;border:none;color:#fff;padding:13px;cursor:pointer;font-size:11px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;min-width:140px;}
+  .save-btn:hover{background:#d04f00;}
   .save-btn:disabled{background:#4a5070;color:#8090b0;cursor:default;}
-  .new-btn{flex:1;background:transparent;border:1px solid #4a5070;color:#c0c8dc;padding:13px;cursor:pointer;font-size:11px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;}
+  .pdf-btn{flex:2;background:#2563eb;border:none;color:#fff;padding:13px;cursor:pointer;font-size:11px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;min-width:140px;}
+  .pdf-btn:hover{background:#1d4ed8;}
+  .new-btn{flex:1;background:transparent;border:1px solid #4a5070;color:#c0c8dc;padding:13px;cursor:pointer;font-size:11px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;min-width:100px;}
   .new-btn:hover{border-color:#8090b0;color:#fff;}
+  .back-btn{background:transparent;border:1px solid #4a5070;color:#a0aac0;padding:10px 16px;cursor:pointer;font-size:10px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;margin-top:10px;}
+  .back-btn:hover{border-color:#8090b0;color:#fff;}
+  .inline-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
   .footer{margin-top:12px;display:flex;justify-content:space-between;}
   .footer span{color:#4a5070;font-size:9px;font-family:monospace;}
   .hidden{display:none;}
@@ -108,7 +127,7 @@
   </div>
 
   <div class="footer">
-    <span>GATE 0 · v4.0 · 4 Niveles</span>
+    <span>GATE 0 · v5.0 · 4 Niveles</span>
     <span>COLORAMA · 2026</span>
   </div>
 </div>
@@ -116,101 +135,126 @@
 <script>
 const GS_URL="https://script.google.com/macros/s/AKfycbyoYMvBHwuBZm1bjObR91cWov6iR1O6RKmdpieoaDuUDqDTUn0uXPDX8I8GyyDFjhLA/exec";
 
+// ── STEPS DEFINITION ──────────────────────────────
 const STEPS=[
   {
     id:"cliente",tipo:"text",
     pregunta:"Nombre del cliente / proyecto",
-    hint:"",
+    hint:"Identificación completa del proyecto",
     placeholder:"Ej: Viña del Valle — Carmenere 2026"
+  },
+  {
+    id:"descripcion",tipo:"text",
+    pregunta:"Descripción del producto",
+    hint:"Nombre de la etiqueta, varietal, formato, volumen",
+    placeholder:"Ej: Reserva Carmenere 2021 750ml"
   },
   {
     id:"tecnologia",tipo:"single",
     pregunta:"¿Cuál es la tecnología de impresión?",
-    hint:"",
-    opts:["Flexografía","Digital","Offset","HP Índigo"]
+    hint:"Selecciona la tecnología principal",
+    opts:["Flexografía","Digital (HP Índigo)","Offset","Serigrafía directa"]
   },
   {
-    id:"pantones",tipo:"single",
-    pregunta:"¿Qué colores especiales incluye?",
-    hint:"Además de la cuatricromía (CMYK) base",
-    opts:["Solo CMYK — sin colores especiales","1-2 Pantones","3 o más Pantones / colores especiales"]
+    id:"maquina",tipo:"single",
+    pregunta:"¿En qué máquina se imprimirá?",
+    hint:"Si no se sabe aún, seleccionar 'Por definir'",
+    opts:["Nilpeter","Indigo 6600","Indigo 6800","Digicon","Digicon S3","GM2","Offset plana","Por definir"],
+    showIf: () => true
+  },
+  {
+    id:"colores",tipo:"single",
+    pregunta:"¿Cuántos colores lleva la impresión?",
+    hint:"Incluye CMYK + Pantones + especiales",
+    opts:["1-4 colores (CMYK o menos)","5-6 colores (CMYK + 1-2 Pantones)","7+ colores (CMYK + 3 o más Pantones)"]
   },
   {
     id:"folia",tipo:"single",
-    pregunta:"¿Se aplica folia?",
+    pregunta:"¿Se aplica folia (hot/cold stamping)?",
     hint:"Incluye foil, hot stamping, cold stamping",
-    opts:["Sin folia","Folia simple — líneas o marco","Folia compleja — formas, grandes áreas","2 o más folias / impresión sobre folia"]
+    opts:["Sin folia","Folia simple — líneas, marco o texto","Folia compleja — formas irregulares, grandes áreas","2 o más folias diferentes","Impresión sobre folia (reinserción)"]
   },
   {
     id:"material",tipo:"single",
-    pregunta:"¿El material del sustrato es estándar o especial?",
-    hint:"Ej: material compuesto como sustrato 1865",
-    opts:["Material estándar","Material compuesto / especial"]
+    pregunta:"¿Qué tipo de sustrato se utilizará?",
+    hint:"Material compuesto = sustratos especiales tipo 1865, multicapa, etc.",
+    opts:["Estándar (Semigloss, Mate, Couché)","Premium (Cuvée, Cotton, Vergé, Estate)","Especial / Compuesto (ej: 1865, Frozen Orion)"]
+  },
+  {
+    id:"troquel",tipo:"single",
+    pregunta:"¿Qué tipo de troquelado requiere?",
+    hint:"Ventanas = cortes internos; Especial = formas complejas",
+    opts:["Sin troquel (guillotina)","Troquelado estándar (forma regular)","Troquelado especial (forma irregular)","Troquelado con ventanas","Troquelado multicapa"]
   },
   {
     id:"terminaciones",tipo:"multi",
-    pregunta:"¿Qué terminaciones adicionales incluye?",
+    pregunta:"¿Qué terminaciones de barniz y relieve incluye?",
     hint:"Marca todas las que aplican",
     opts:[
-      "Barniz pleno",
-      "Barniz reservado",
-      "Relieve o bajorrelieve",
-      "Serigrafía",
+      "Barniz pleno (brillo o mate)",
+      "Barniz reservado (sectorial)",
+      "Relieve (alto relieve)",
+      "Bajorrelieve",
+      "Serigrafía mate o brillante",
       "Serigrafía con aromas",
-      "Troquelado estándar",
-      "Troquelado especial / ventanas",
-      "Multicapa",
-      "Ninguna"
+      "Ninguna de las anteriores"
     ]
   },
   {
     id:"acabados",tipo:"multi",
-    pregunta:"¿Incluye alguno de estos acabados de alta gama?",
-    hint:"Marca todos los que aplican",
+    pregunta:"¿Incluye acabados de alta gama?",
+    hint:"Marca todos los que aplican — estos escalan automáticamente la complejidad",
     opts:[
       "Etiquetas numeradas",
       "Mosaico o Collage",
       "Tinta termocromática",
-      "Doming",
+      "Doming (resina UV 3D)",
       "Reinserción sobre folia CMYK (HP Índigo)",
+      "Impresión por adhesivo",
       "Ninguno"
     ]
   },
+  {
+    id:"observaciones",tipo:"text",
+    pregunta:"Observaciones adicionales",
+    hint:"Información relevante: normativa destino, códigos QR, restricciones de color, referencias Pantone, etc.",
+    placeholder:"Ej: Destino USA — requiere QR Code. Igualar a Pantone 7421C."
+  }
 ];
 
-// 4 niveles según documento
+// ── CLASSIFICATION LEVELS ──────────────────────────
 const RES={
   FACIL:{
     label:"FÁCIL",
     color:"#16a34a",light:"#1a3a2a",border:"#2a6a4a",icon:"✓",
-    descripcion:"Impresión, barniz y troquelado estándar",
-    accion:"Pasa directo a Gate 1 — Pre-Diseño",
-    sla:"Lead time estándar"
+    descripcion:"Impresión estándar + barniz + troquelado regular",
+    accion:"Pasa directo a Gate 1 — Pre-Diseño estándar",
+    sla:"Lead time: 15–18 días hábiles"
   },
   MEDIA:{
     label:"MEDIA",
     color:"#d97706",light:"#3a2a0a",border:"#6a4a0a",icon:"◐",
     descripcion:"Pantones + cuatricromía, folia simple, barniz reservado",
-    accion:"Gate 1 con flag técnico — validar Pantones y Folia",
-    sla:"Lead time estándar + 2 días"
+    accion:"Gate 1 con flag técnico — validar Pantones y terminaciones",
+    sla:"Lead time: 18–22 días hábiles"
   },
   COMPLEJA:{
     label:"COMPLEJA",
     color:"#dc6803",light:"#3a2000",border:"#7a4000",icon:"▲",
-    descripcion:"Material compuesto, folia compleja, relieve, serigrafía",
-    accion:"Asignar operador senior — confirmar materiales antes de cotizar",
-    sla:"Lead time estándar + 5 días"
+    descripcion:"Material especial, folia compleja, relieve, serigrafía",
+    accion:"Asignar operador senior — validar materiales y factibilidad antes de cotizar",
+    sla:"Lead time: 22–28 días hábiles"
   },
   MUY_COMPLEJA:{
     label:"MUY COMPLEJA",
     color:"#ef4444",light:"#3a1a1a",border:"#6a2a2a",icon:"!",
     descripcion:"Alta gama — múltiples técnicas especiales combinadas",
-    accion:"Escalar a Jefe Técnico — no confirmar fecha al cliente",
-    sla:"Pendiente evaluación técnica especializada"
+    accion:"Escalar a Jefe Técnico — requiere evaluación especializada antes de confirmar fecha",
+    sla:"Lead time: sujeto a evaluación técnica (mín. 28 días)"
   },
 };
 
-let step=0,resp={},multi=[],resultado=null,sesionNombre="";
+let step=0,resp={},multi=[],resultado=null,factoresDetalle=[],scoreTotal=0,sesionNombre="",proyectoId="";
 
 // ── LOGIN ──────────────────────────────────────────
 async function doLogin(){
@@ -239,7 +283,7 @@ async function doLogin(){
   }
 }
 function doLogout(){
-  sesionNombre="";step=0;resp={};multi=[];resultado=null;
+  sesionNombre="";step=0;resp={};multi=[];resultado=null;factoresDetalle=[];scoreTotal=0;proyectoId="";
   document.getElementById("appView").classList.add("hidden");
   document.getElementById("loginView").classList.remove("hidden");
   document.getElementById("inputUsuario").value="";
@@ -249,41 +293,94 @@ function doLogout(){
   document.getElementById("loginBtn").textContent="Ingresar →";
 }
 
-// ── CLASIFICACIÓN 4 NIVELES ────────────────────────
+// ── CLASSIFICATION ENGINE v5 — Score-based ─────────
 function clasificar(){
-  const pantones = resp.pantones||"";
-  const folia    = resp.folia||"";
-  const material = resp.material||"";
-  const term     = resp.terminaciones||[];
-  const acabados = resp.acabados||[];
+  const colores     = resp.colores||"";
+  const folia       = resp.folia||"";
+  const material    = resp.material||"";
+  const troquel     = resp.troquel||"";
+  const term        = resp.terminaciones||[];
+  const acabados    = resp.acabados||[];
 
-  const tieneAcabadosAlta = acabados.some(x=>x!=="Ninguno");
-  const tiene3Pantones    = pantones.includes("3 o más");
-  const tiene2Folias      = folia.includes("2 o más");
-  const foliaCompleja     = folia.includes("compleja");
-  const materialEspecial  = material.includes("compuesto");
-  const relieve           = term.includes("Relieve o bajorrelieve");
-  const serigrafia        = term.includes("Serigrafía") || term.includes("Serigrafía con aromas");
-  const troquelEsp        = term.includes("Troquelado especial / ventanas");
-  const multicapa         = term.includes("Multicapa");
-  const barnizRes         = term.includes("Barniz reservado");
-  const foliaSimple       = folia.includes("simple");
-  const tiene12Pantones   = pantones.includes("1-2");
+  let score = 0;
+  let factores = [];
 
-  // MUY COMPLEJA: alta dificultad impresión + acabados alta gama
-  if(tieneAcabadosAlta || tiene2Folias || (tiene3Pantones && (relieve||serigrafia||troquelEsp||multicapa))){
-    return "MUY_COMPLEJA";
+  // — COLORES —
+  if(colores.includes("5-6")){
+    score += 2; factores.push({nombre:"1-2 Pantones adicionales",pts:2});
+  } else if(colores.includes("7+")){
+    score += 4; factores.push({nombre:"3+ Pantones / colores especiales",pts:4});
   }
-  // COMPLEJA: material compuesto, folia compleja, relieve, serigrafía, troquelado especial, multicapa
-  if(materialEspecial || foliaCompleja || relieve || serigrafia || troquelEsp || multicapa){
-    return "COMPLEJA";
+
+  // — FOLIA —
+  if(folia.includes("simple")){
+    score += 2; factores.push({nombre:"Folia simple",pts:2});
+  } else if(folia.includes("compleja")){
+    score += 4; factores.push({nombre:"Folia compleja",pts:4});
+  } else if(folia.includes("2 o más")){
+    score += 6; factores.push({nombre:"2+ folias diferentes",pts:6});
+  } else if(folia.includes("Impresión sobre folia")){
+    score += 7; factores.push({nombre:"Impresión sobre folia (reinserción)",pts:7});
   }
-  // MEDIA: 1-2 pantones, folia simple, barniz reservado
-  if(tiene12Pantones || tiene3Pantones || foliaSimple || barnizRes){
-    return "MEDIA";
+
+  // — MATERIAL —
+  if(material.includes("Premium")){
+    score += 1; factores.push({nombre:"Sustrato premium",pts:1});
+  } else if(material.includes("Especial")){
+    score += 4; factores.push({nombre:"Material compuesto / especial",pts:4});
   }
-  // FÁCIL: solo CMYK, sin folia, sin terminaciones especiales
-  return "FACIL";
+
+  // — TROQUEL —
+  if(troquel.includes("especial")){
+    score += 3; factores.push({nombre:"Troquelado especial",pts:3});
+  } else if(troquel.includes("ventanas")){
+    score += 5; factores.push({nombre:"Troquelado con ventanas",pts:5});
+  } else if(troquel.includes("multicapa")){
+    score += 6; factores.push({nombre:"Troquelado multicapa",pts:6});
+  }
+
+  // — TERMINACIONES —
+  if(term.includes("Barniz reservado (sectorial)")){
+    score += 2; factores.push({nombre:"Barniz reservado",pts:2});
+  }
+  if(term.includes("Relieve (alto relieve)")){
+    score += 3; factores.push({nombre:"Alto relieve",pts:3});
+  }
+  if(term.includes("Bajorrelieve")){
+    score += 3; factores.push({nombre:"Bajorrelieve",pts:3});
+  }
+  if(term.includes("Serigrafía mate o brillante")){
+    score += 3; factores.push({nombre:"Serigrafía",pts:3});
+  }
+  if(term.includes("Serigrafía con aromas")){
+    score += 7; factores.push({nombre:"Serigrafía con aromas",pts:7});
+  }
+
+  // — ACABADOS ALTA GAMA — cada uno escala fuerte
+  const acabadosAlta = acabados.filter(x=>x!=="Ninguno");
+  acabadosAlta.forEach(a=>{
+    score += 7; factores.push({nombre:a,pts:7});
+  });
+
+  // Determinar nivel por score
+  let nivel;
+  if(score <= 1)       nivel = "FACIL";
+  else if(score <= 4)  nivel = "MEDIA";
+  else if(score <= 8)  nivel = "COMPLEJA";
+  else                 nivel = "MUY_COMPLEJA";
+
+  factoresDetalle = factores;
+  scoreTotal = score;
+  return nivel;
+}
+
+function genProjectId(){
+  const d=new Date();
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  const yy=String(d.getFullYear()).slice(2);
+  const rnd=String(Math.floor(Math.random()*9000)+1000);
+  return `G0-${yy}${mm}${dd}-${rnd}`;
 }
 
 // ── RENDER ────────────────────────────────────────
@@ -299,79 +396,152 @@ function render(){
   ${s.hint?`<p class="question-hint">${s.hint}</p>`:""}`;
 
   if(s.tipo==="text"){
-    h+=`<input class="text-inp" id="ti" placeholder="${s.placeholder}" onkeydown="if(event.key==='Enter')subText()"/>
-        <button class="primary-btn" onclick="subText()">Continuar →</button>`;
+    const existing = resp[s.id]||"";
+    h+=`<input class="text-inp" id="ti" value="${existing.replace(/"/g,'&quot;')}" placeholder="${s.placeholder}" onkeydown="if(event.key==='Enter')subText()"/>
+        <button class="primary-btn" onclick="subText()">${step===STEPS.length-1?'Clasificar →':'Continuar →'}</button>`;
   }else if(s.tipo==="single"){
-    h+=`<div class="opts">`+s.opts.map(o=>`<button class="opt-btn" onclick="selS('${o.replace(/'/g,"\\'")}')"><span class="dot-sq"></span>${o}</button>`).join("")+`</div>`;
+    h+=`<div class="opts">`+s.opts.map(o=>`<button class="opt-btn${resp[s.id]===o?' sel':''}" onclick="selS('${o.replace(/'/g,"\\'")}')"><span class="dot-sq"></span>${o}</button>`).join("")+`</div>`;
   }else{
+    const prev = resp[s.id]||[];
+    if(prev.length && prev[0]!=="Ninguna") multi=[...prev];
     h+=`<p class="multi-hint">Selección múltiple</p><div class="opts">`+
-    s.opts.map(o=>{const id=o.replace(/[^a-zA-Z0-9]/g,'_');return`<button class="opt-btn" id="b_${id}" onclick="togM('${o.replace(/'/g,"\\'")}')"><span class="sq" id="s_${id}"></span>${o}</button>`;}).join("")+
-    `</div><button class="primary-btn" style="margin-top:14px" onclick="confM()">Clasificar →</button>`;
+    s.opts.map(o=>{const id=o.replace(/[^a-zA-Z0-9]/g,'_');const isSel=multi.includes(o);return`<button class="opt-btn${isSel?' sel':''}" id="b_${id}" onclick="togM('${o.replace(/'/g,"\\'")}')"><span class="sq${isSel?' sel':''}" id="s_${id}">${isSel?'✓':''}</span>${o}</button>`;}).join("")+
+    `</div><button class="primary-btn" style="margin-top:14px" onclick="confM()">${step===STEPS.length-1?'Clasificar →':'Continuar →'}</button>`;
   }
+  // Back button
+  if(step>0) h+=`<button class="back-btn" onclick="goBack()">← Volver</button>`;
   card.innerHTML=h;
-  if(s.tipo==="text")document.getElementById("ti").focus();
+  if(s.tipo==="text"){const el=document.getElementById("ti");el.focus();el.setSelectionRange(el.value.length,el.value.length);}
 }
 
-function subText(){const v=document.getElementById("ti").value.trim();if(!v)return;resp[STEPS[step].id]=v;next();}
+function goBack(){
+  if(step>0){multi=[];step--;render();}
+}
+
+function subText(){
+  const v=document.getElementById("ti").value.trim();
+  // observaciones can be empty
+  if(!v && STEPS[step].id!=="observaciones") return;
+  resp[STEPS[step].id]=v;
+  next();
+}
 function selS(v){resp[STEPS[step].id]=v;next();}
 function togM(v){
-  if(v==="Ninguna"||v==="Ninguno"){multi=[v];}
-  else{multi=multi.filter(x=>x!=="Ninguna"&&x!=="Ninguno");multi.includes(v)?multi=multi.filter(x=>x!==v):multi.push(v);}
+  const noneVals=["Ninguna de las anteriores","Ninguno"];
+  if(noneVals.includes(v)){multi=[v];}
+  else{multi=multi.filter(x=>!noneVals.includes(x));multi.includes(v)?multi=multi.filter(x=>x!==v):multi.push(v);}
   STEPS[step].opts.forEach(o=>{
     const id=o.replace(/[^a-zA-Z0-9]/g,'_');
     const sq=document.getElementById("s_"+id),bn=document.getElementById("b_"+id);
-    if(sq)sq.className=multi.includes(o)?"sq sel":"sq";
+    if(sq){sq.className=multi.includes(o)?"sq sel":"sq";sq.textContent=multi.includes(o)?"✓":"";}
     if(bn)bn.className=multi.includes(o)?"opt-btn sel":"opt-btn";
   });
 }
 function confM(){
-  resp[STEPS[step].id]=multi.length?[...multi]:["Ninguna"];
+  const noneVals=["Ninguna de las anteriores","Ninguno"];
+  resp[STEPS[step].id]=multi.length?[...multi]:[];
   multi=[];
-  if(step<STEPS.length-1){setTimeout(()=>{step++;render();},150);}
-  else{resultado=clasificar();render();}
+  if(step<STEPS.length-1){setTimeout(()=>{step++;render();},120);}
+  else{resultado=clasificar();proyectoId=genProjectId();render();}
 }
 function next(){
-  if(step<STEPS.length-1){setTimeout(()=>{step++;render();},150);}
-  else{resultado=clasificar();render();}
+  if(step<STEPS.length-1){setTimeout(()=>{step++;render();},120);}
+  else{resultado=clasificar();proyectoId=genProjectId();render();}
 }
 
 function renderResult(card){
   const r=RES[resultado];
-  const inp=Object.entries(resp).filter(([k])=>k!=="cliente").map(([k,v])=>`<div class="inp-row"><span class="inp-k">${k}</span><span class="inp-v">${Array.isArray(v)?v.join(" / "):v}</span></div>`).join("");
+  const now=new Date();
+  const fecha=now.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const hora=now.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
+
+  // Inputs summary
+  const skipKeys=["cliente","descripcion","observaciones"];
+  const inp=Object.entries(resp).filter(([k])=>!skipKeys.includes(k)).map(([k,v])=>{
+    const label=k.charAt(0).toUpperCase()+k.slice(1);
+    const val=Array.isArray(v)?v.join(" / "):v;
+    return`<div class="inp-row"><span class="inp-k">${label}</span><span class="inp-v">${val||"—"}</span></div>`;
+  }).join("");
+
+  // Factors
+  const factorsHtml=factoresDetalle.length?factoresDetalle.map(f=>`<div class="factor-row"><span class="factor-name">${f.nombre}</span><span class="factor-pts">+${f.pts}</span></div>`).join(""):`<div class="factor-row"><span class="factor-name">Sin factores de complejidad</span><span class="factor-pts">0</span></div>`;
+
+  // Score bar (visual)
+  const maxScore=14;
+  const segments=10;
+  let segHtml='';
+  for(let i=0;i<segments;i++){
+    const threshold=i*(maxScore/segments);
+    const active=scoreTotal>threshold;
+    let col='#16a34a';
+    if(threshold>2)col='#d97706';
+    if(threshold>5)col='#dc6803';
+    if(threshold>8)col='#ef4444';
+    segHtml+=`<div class="score-seg${active?' active':''}" style="background:${col}"></div>`;
+  }
+
   card.innerHTML=`
     <div class="badge" style="background:${r.light};border:1px solid ${r.border}">
-      <span class="badge-icon" style="background:${r.color};width:32px;height:32px;border-radius:2px">${r.icon}</span>
+      <span class="badge-icon" style="background:${r.color}">${r.icon}</span>
       <div>
         <div class="badge-txt" style="color:${r.color}">COMPLEJIDAD: ${r.label}</div>
         <div class="badge-sub" style="color:${r.color}">${r.descripcion}</div>
       </div>
     </div>
+
+    <div class="score-bar">${segHtml}</div>
+    <div class="score-label">Score: ${scoreTotal} puntos — ${r.label}</div>
+
     <div class="res-rows">
+      <div class="res-row"><span class="res-key">Proyecto</span><span class="res-val">${proyectoId}</span></div>
       <div class="res-row"><span class="res-key">Cliente</span><span class="res-val">${resp.cliente||"—"}</span></div>
+      <div class="res-row"><span class="res-key">Producto</span><span class="res-val">${resp.descripcion||"—"}</span></div>
       <div class="res-row"><span class="res-key">Acción</span><span class="res-val bold">${r.accion}</span></div>
       <div class="res-row"><span class="res-key">SLA</span><span class="res-val">${r.sla}</span></div>
+      <div class="res-row"><span class="res-key">Evaluador</span><span class="res-val">${sesionNombre}</span></div>
+      <div class="res-row"><span class="res-key">Fecha</span><span class="res-val">${fecha} — ${hora}</span></div>
+      ${resp.observaciones?`<div class="res-row"><span class="res-key">Obs.</span><span class="res-val">${resp.observaciones}</span></div>`:''}
     </div>
-    <div class="inputs-box"><p class="inputs-lbl">Inputs registrados</p>${inp}</div>
+
+    <div class="factors-box">
+      <p class="factors-lbl">Factores de complejidad detectados</p>
+      ${factorsHtml}
+      <div class="factor-row" style="border-top:1px solid #4a5070;margin-top:6px;padding-top:6px;">
+        <span class="factor-name" style="color:#fff;font-weight:bold;">TOTAL</span>
+        <span class="factor-pts" style="font-size:13px;">${scoreTotal}</span>
+      </div>
+    </div>
+
+    <div class="inputs-box"><p class="inputs-lbl">Especificaciones técnicas</p>${inp}</div>
     <div id="msgBox"></div>
     <div class="btns">
-      <button class="save-btn" id="saveBtn" onclick="guardar()">↑ Guardar en Google Sheets</button>
-      <button class="new-btn" onclick="reiniciar()">← Nueva evaluación</button>
+      <button class="pdf-btn" onclick="generarPDF()">↓ Brief Congelado (PDF)</button>
+      <button class="save-btn" id="saveBtn" onclick="guardar()">↑ Guardar en Sheets</button>
+      <button class="new-btn" onclick="reiniciar()">← Nueva</button>
     </div>`;
 }
 
+// ── SAVE TO GOOGLE SHEETS ──────────────────────────
 async function guardar(){
   const btn=document.getElementById("saveBtn");btn.disabled=true;btn.textContent="Guardando...";
   const r=RES[resultado];
   const payload={
+    proyectoId:proyectoId,
     cliente:resp.cliente||"Sin nombre",
+    descripcion:resp.descripcion||"",
     complejidad:r.label,
+    score:scoreTotal,
     tecnologia:resp.tecnologia||"",
-    pantones:resp.pantones||"",
+    maquina:resp.maquina||"",
+    colores:resp.colores||"",
     folia:resp.folia||"",
     material:resp.material||"",
+    troquel:resp.troquel||"",
     terminaciones:Array.isArray(resp.terminaciones)?resp.terminaciones.join(", "):resp.terminaciones||"",
     acabados:Array.isArray(resp.acabados)?resp.acabados.join(", "):resp.acabados||"",
+    observaciones:resp.observaciones||"",
     accion:r.accion,
+    sla:r.sla,
     usuario:sesionNombre
   };
   try{
@@ -380,11 +550,193 @@ async function guardar(){
     btn.style.display="none";
   }catch(e){
     document.getElementById("msgBox").innerHTML=`<div class="msg err">✗ Error al guardar: ${e.message}</div>`;
-    btn.disabled=false;btn.textContent="↑ Guardar en Google Sheets";
+    btn.disabled=false;btn.textContent="↑ Guardar en Sheets";
   }
 }
 
-function reiniciar(){step=0;resp={};multi=[];resultado=null;render();}
+// ── PDF BRIEF CONGELADO ────────────────────────────
+function generarPDF(){
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+  const W=215.9, H=279.4;
+  const ml=20, mr=20, mt=20;
+  const pw=W-ml-mr;
+  const r=RES[resultado];
+  const now=new Date();
+  const fecha=now.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const hora=now.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
+
+  // Color helpers
+  const hexToRgb=(hex)=>{const m=hex.match(/\w{2}/g);return m?m.map(x=>parseInt(x,16)):[0,0,0];};
+  const setC=(hex)=>{const[r,g,b]=hexToRgb(hex);doc.setTextColor(r,g,b);};
+  const setF=(hex)=>{const[r,g,b]=hexToRgb(hex);doc.setFillColor(r,g,b);};
+  const setD=(hex)=>{const[r,g,b]=hexToRgb(hex);doc.setDrawColor(r,g,b);};
+
+  let y=mt;
+
+  // ── HEADER BAR ──
+  setF('#1e2240');
+  doc.rect(0,0,W,38,'F');
+  setF('#e85d04');
+  doc.rect(0,36,W,2,'F');
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8);
+  setC('#e85d04');
+  doc.text('COLORAMA',ml,12);
+
+  doc.setFontSize(16);
+  setC('#ffffff');
+  doc.text('Brief Congelado — Gate 0',ml,22);
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  setC('#a0aac0');
+  doc.text(`${proyectoId}  |  ${fecha} ${hora}`,ml,30);
+
+  doc.setFontSize(8);
+  doc.text(`Evaluador: ${sesionNombre}`,W-mr,30,{align:'right'});
+
+  y=48;
+
+  // ── CLASSIFICATION BADGE ──
+  const badgeH=18;
+  const[br,bg,bb]=hexToRgb(r.color);
+  doc.setFillColor(br,bg,bb);
+  doc.rect(ml,y,pw,badgeH,'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(14);
+  setC('#ffffff');
+  doc.text(`COMPLEJIDAD: ${r.label}`,ml+8,y+8);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.text(r.descripcion,ml+8,y+14);
+  y+=badgeH+4;
+
+  // Score
+  doc.setFontSize(8);
+  setC('#666666');
+  doc.text(`Score: ${scoreTotal} puntos`,ml,y+4);
+  y+=10;
+
+  // ── PROJECT INFO ──
+  const drawSection=(title,yStart)=>{
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(9);
+    setC('#e85d04');
+    doc.text(title.toUpperCase(),ml,yStart);
+    setD('#e85d04');
+    doc.setLineWidth(0.3);
+    doc.line(ml,yStart+1.5,ml+pw,yStart+1.5);
+    return yStart+7;
+  };
+
+  const drawRow=(label,value,yPos)=>{
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(8);
+    setC('#333333');
+    doc.text(label,ml,yPos);
+    doc.setFont('helvetica','normal');
+    setC('#555555');
+    // Handle long text wrapping
+    const maxW=pw-45;
+    const lines=doc.splitTextToSize(String(value||'—'),maxW);
+    doc.text(lines,ml+45,yPos);
+    return yPos+5*lines.length;
+  };
+
+  y=drawSection('Datos del Proyecto',y);
+  y=drawRow('Cliente:',resp.cliente||'—',y);
+  y=drawRow('Producto:',resp.descripcion||'—',y);
+  y=drawRow('ID Proyecto:',proyectoId,y);
+  y=drawRow('Fecha:',`${fecha} — ${hora}`,y);
+  y=drawRow('Evaluador:',sesionNombre,y);
+  y+=4;
+
+  // ── TECHNICAL SPECS ──
+  y=drawSection('Especificaciones Tecnicas',y);
+  y=drawRow('Tecnologia:',resp.tecnologia||'—',y);
+  y=drawRow('Maquina:',resp.maquina||'—',y);
+  y=drawRow('Colores:',resp.colores||'—',y);
+  y=drawRow('Folia:',resp.folia||'—',y);
+  y=drawRow('Sustrato:',resp.material||'—',y);
+  y=drawRow('Troquel:',resp.troquel||'—',y);
+  const termStr=Array.isArray(resp.terminaciones)?resp.terminaciones.join(', '):'—';
+  y=drawRow('Terminaciones:',termStr,y);
+  const acabStr=Array.isArray(resp.acabados)?resp.acabados.join(', '):'—';
+  y=drawRow('Acabados:',acabStr,y);
+  if(resp.observaciones){
+    y=drawRow('Observaciones:',resp.observaciones,y);
+  }
+  y+=4;
+
+  // ── COMPLEXITY FACTORS ──
+  y=drawSection('Factores de Complejidad',y);
+  if(factoresDetalle.length){
+    factoresDetalle.forEach(f=>{
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      setC('#555555');
+      doc.text(`• ${f.nombre}`,ml+2,y);
+      setC('#e85d04');
+      doc.text(`+${f.pts}`,ml+pw-10,y,{align:'right'});
+      y+=5;
+    });
+    // Total line
+    setD('#cccccc');
+    doc.line(ml,y-1,ml+pw,y-1);
+    doc.setFont('helvetica','bold');
+    setC('#333333');
+    doc.text('TOTAL',ml+2,y+3);
+    setC('#e85d04');
+    doc.text(String(scoreTotal),ml+pw-10,y+3,{align:'right'});
+    y+=8;
+  } else {
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    setC('#999999');
+    doc.text('Sin factores de complejidad detectados (Score: 0)',ml+2,y);
+    y+=8;
+  }
+
+  // ── ACTION & SLA ──
+  y=drawSection('Resultado y Accion Requerida',y);
+  y=drawRow('Nivel:',r.label,y);
+  y=drawRow('Accion:',r.accion,y);
+  y=drawRow('SLA:',r.sla,y);
+  y+=8;
+
+  // ── SIGNATURES ──
+  if(y>H-60) { doc.addPage(); y=mt; }
+  y=drawSection('Firmas de Aprobacion Gate 0',y);
+  y+=4;
+  const sigW=(pw-20)/3;
+  ['Ejecutivo Comercial','Jefe Tecnico','Cliente'].forEach((role,i)=>{
+    const sx=ml+i*(sigW+10);
+    setD('#cccccc');
+    doc.setLineWidth(0.2);
+    doc.line(sx,y+18,sx+sigW,y+18);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7);
+    setC('#999999');
+    doc.text(role,sx+sigW/2,y+23,{align:'center'});
+    doc.text('Firma / Fecha',sx+sigW/2,y+27,{align:'center'});
+  });
+
+  // ── FOOTER ──
+  const fh=H-10;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(6);
+  setC('#aaaaaa');
+  doc.text(`Colorama S.A. — Brief Congelado Gate 0 — ${proyectoId} — Generado: ${fecha} ${hora}`,W/2,fh,{align:'center'});
+  doc.text('Este documento constituye el congelamiento formal de requerimientos. Cambios posteriores requieren nueva evaluacion.',W/2,fh+3.5,{align:'center'});
+
+  // Save
+  const filename=`Brief_G0_${(resp.cliente||'proyecto').replace(/[^a-zA-Z0-9]/g,'_')}_${proyectoId}.pdf`;
+  doc.save(filename);
+}
+
+function reiniciar(){step=0;resp={};multi=[];resultado=null;factoresDetalle=[];scoreTotal=0;proyectoId="";render();}
 </script>
 </body>
 </html>
